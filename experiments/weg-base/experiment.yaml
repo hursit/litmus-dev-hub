@@ -985,6 +985,23 @@ spec:
                   experiments:
                     - name: pod-cpu-hog
                       spec:
+                        probe:
+                        - name: "catalogue-error"
+                          type: "httpProbe"
+                          httpProbe/inputs:
+                            url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                            insecureSkipVerify: false
+                            responseTimeout: 100
+                            method:
+                              get:
+                                criteria: "=="
+                                responseCode: "200"
+                          mode: "Continuous"
+                          runProperties:
+                            probeTimeout: 1s
+                            interval: 100ms
+                            attempt: 2
+                            probePollingInterval: 1s
                         components:
                           env:
                             #number of cpu cores to be consumed
@@ -1026,6 +1043,23 @@ spec:
                   experiments:
                     - name: pod-memory-hog
                       spec:
+                        probe:
+                        - name: "catalogue-error"
+                          type: "httpProbe"
+                          httpProbe/inputs:
+                            url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                            insecureSkipVerify: false
+                            responseTimeout: 100
+                            method:
+                              get:
+                                criteria: "=="
+                                responseCode: "200"
+                          mode: "Continuous"
+                          runProperties:
+                            probeTimeout: 1s
+                            interval: 100ms
+                            attempt: 2
+                            probePollingInterval: 1s
                         components:
                           env:
                             - name: MEMORY_CONSUMPTION
@@ -1068,6 +1102,23 @@ spec:
                   experiments:
                     - name: deployment-delete
                       spec:
+                        probe:
+                        - name: "catalogue-error"
+                          type: "httpProbe"
+                          httpProbe/inputs:
+                            url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                            insecureSkipVerify: false
+                            responseTimeout: 100
+                            method:
+                              get:
+                                criteria: "=="
+                                responseCode: "200"
+                          mode: "Continuous"
+                          runProperties:
+                            probeTimeout: 1s
+                            interval: 100ms
+                            attempt: 2
+                            probePollingInterval: 1s
                         components:
                           env:
                             - name: TOTAL_CHAOS_DURATION
@@ -1111,6 +1162,23 @@ spec:
                   experiments:
                     - name: deployment-delete-rollback
                       spec:
+                        probe:
+                        - name: "catalogue-error"
+                          type: "httpProbe"
+                          httpProbe/inputs:
+                            url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                            insecureSkipVerify: false
+                            responseTimeout: 100
+                            method:
+                              get:
+                                criteria: "=="
+                                responseCode: "200"
+                          mode: "Continuous"
+                          runProperties:
+                            probeTimeout: 1s
+                            interval: 100ms
+                            attempt: 2
+                            probePollingInterval: 1s
                         components:
                           env:
                             - name: TOTAL_CHAOS_DURATION
@@ -1243,6 +1311,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "catalogue-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1290,6 +1375,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "frontend-success"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://front-end.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1337,6 +1439,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "payment-success-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://payment.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1386,6 +1505,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "catalogue-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1433,6 +1569,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "frontend-success"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://front-end.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1479,8 +1632,24 @@ spec:
                     chaosServiceAccount: litmus-admin
                     experiments:
                       - name: k6-loadgen
-                  #cpu hog start
                         spec:
+                          probe:
+                          - name: "payment-success-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://payment.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1530,6 +1699,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "catalogue-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1577,6 +1763,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "frontend-success"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://front-end.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1625,6 +1828,23 @@ spec:
                       - name: k6-loadgen
                   #cpu hog start
                         spec:
+                          probe:
+                          - name: "payment-success-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://payment.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1674,6 +1894,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "catalogue-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1721,6 +1958,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "frontend-success"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://front-end.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1767,8 +2021,24 @@ spec:
                     chaosServiceAccount: litmus-admin
                     experiments:
                       - name: k6-loadgen
-                  #cpu hog start
                         spec:
+                          probe:
+                          - name: "payment-success-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://payment.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1818,6 +2088,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "catalogue-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://catalogue.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1865,6 +2152,23 @@ spec:
                     experiments:
                       - name: k6-loadgen
                         spec:
+                          probe:
+                          - name: "frontend-success"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://front-end.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
@@ -1911,8 +2215,24 @@ spec:
                     chaosServiceAccount: litmus-admin
                     experiments:
                       - name: k6-loadgen
-                  #cpu hog start
                         spec:
+                          probe:
+                          - name: "payment-success-error"
+                            type: "httpProbe"
+                            httpProbe/inputs:
+                              url: "http://payment.sock-shop.svc.cluster.local:80"
+                              insecureSkipVerify: false
+                              responseTimeout: 100
+                              method:
+                                get:
+                                  criteria: "=="
+                                  responseCode: "200"
+                            mode: "Continuous"
+                            runProperties:
+                              probeTimeout: 1s
+                              interval: 100ms
+                              attempt: 2
+                              probePollingInterval: 1s
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
