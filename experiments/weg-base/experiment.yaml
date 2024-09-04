@@ -35,38 +35,38 @@ spec:
         - - name: pod-delete
             template: pod-delete
           - name: k6-loadgen-pod-delete-1
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-delete-1
           - name: k6-loadgen-pod-delete-2
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-delete-2
           - name: k6-loadgen-pod-delete-3
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-delete-3
 
         - - name: pod-network-loss
             template: pod-network-loss
           - name: k6-loadgen-pod-network-loss-1
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-network-loss-1
           - name: k6-loadgen-pod-network-loss-2
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-network-loss-2
           - name: k6-loadgen-pod-network-loss-3
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-network-loss-3
 
         - - name: pod-memory-hog
             template: pod-memory-hog
           - name: k6-loadgen-pod-memory-hog-1
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-memory-hog-1
           - name: k6-loadgen-pod-memory-hog-2
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-memory-hog-2
           - name: k6-loadgen-pod-memory-hog-3
-            template: k6-loadgen-acy
+            template: k6-loadgen-pod-memory-hog-3
 
         - - name: disk-fill
             template: disk-fill
-          - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy-1
-          - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy-2
-          - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy-3
+          - name: k6-loadgen-disk-fill-1
+            template: k6-loadgen-disk-fill-1
+          - name: k6-loadgen-disk-fill-2
+            template: k6-loadgen-disk-fill-2
+          - name: k6-loadgen-disk-fill-3
+            template: k6-loadgen-disk-fill-3
 
         - - name: cleanup-chaos-resources
             template: cleanup-chaos-resources
@@ -1173,53 +1173,7 @@ spec:
             "kubectl delete chaosengine pod-memory-hog-chaos  pod-cpu-hog-chaos catalogue-pod-delete-chaos pod-network-loss-chaos -n {{workflow.parameters.adminModeNamespace}}",
           ]
 
-    - name: k6-loadgen-acy
-      inputs:
-        artifacts:
-            - name: k6-loadgen-acy
-              path: /tmp/chaosengine-k6-loadgen-acy.yaml
-              raw:
-                data: |
-                  apiVersion: litmuschaos.io/v1alpha1
-                  kind: ChaosEngine
-                  metadata:
-                    name: nginx-chaos
-                    namespace: "{{workflow.parameters.adminModeNamespace}}"
-                    labels:
-                      workflow_run_id: "{{ workflow.uid }}"
-                    annotations: {}
-                  spec:
-                    engineState: active
-                    chaosServiceAccount: litmus-admin
-                    experiments:
-                      - name: k6-loadgen
-                        spec:
-                          components:
-                            env:
-                              - name: TOTAL_CHAOS_DURATION
-                                value: "30"
-                              - name: CHAOS_INTERVAL
-                                value: "30"
-                              - name: RAMP_TIME
-                                value: "0"
-                              - name: SCRIPT_SECRET_NAME
-                                value: k6-script
-                              - name: SCRIPT_SECRET_KEY
-                                value: script.js
-                              - name: LIB_IMAGE
-                                value: ghcr.io/grafana/k6-operator:latest-runner
-                              - name: LIB_IMAGE_PULL_POLICY
-                                value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-
+    #cpu hog start
     - name: k6-loadgen-pod-cpu-hog-1
       inputs:
         artifacts:
@@ -1360,3 +1314,580 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
+    #cpu hog end
+
+    #pod-delete start
+    - name: k6-loadgen-pod-delete-1
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-delete-2
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-delete-3
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                  #cpu hog start
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+    #pod-delete end
+
+    #pod-network-loss start
+    - name: k6-loadgen-pod-network-loss-1
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-network-loss-2
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-network-loss-3
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                  #cpu hog start
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+    #pod-network-loss end
+
+    #pod-memory-hog start
+    - name: k6-loadgen-pod-memory-hog-1
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-memory-hog-2
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-pod-memory-hog-3
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                  #cpu hog start
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+    #pod-memory-hog end
+
+    #disk-fill start
+    - name: k6-loadgen-disk-fill-1
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-disk-fill-2
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+
+    - name: k6-loadgen-disk-fill-3
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                  #cpu hog start
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
+    #disk-fill end
