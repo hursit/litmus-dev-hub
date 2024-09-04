@@ -23,6 +23,19 @@ spec:
         - - name: install-chaos-faults
             template: install-chaos-faults
 
+        - - name: deployment-delete
+            template: deployment-delete
+
+        - - name: k6-loadgen-deployment-delete-1
+            template: k6-loadgen-deployment-delete-1
+          - name: k6-loadgen-deployment-delete-2
+            template: k6-loadgen-deployment-delete-2
+          - name: k6-loadgen-deployment-delete-3
+            template: k6-loadgen-deployment-delete-3
+
+        - - name: deployment-delete-rollback
+            template: deployment-delete-rollback
+
         - - name: pod-cpu-hog
             template: pod-cpu-hog
           - name: k6-loadgen-pod-cpu-hog-1
@@ -32,14 +45,6 @@ spec:
           - name: k6-loadgen-pod-cpu-hog-3
             template: k6-loadgen-pod-cpu-hog-3
 
-        - - name: pod-delete
-            template: pod-delete
-          - name: k6-loadgen-pod-delete-1
-            template: k6-loadgen-pod-delete-1
-          - name: k6-loadgen-pod-delete-2
-            template: k6-loadgen-pod-delete-2
-          - name: k6-loadgen-pod-delete-3
-            template: k6-loadgen-pod-delete-3
 
         - - name: pod-network-loss
             template: pod-network-loss
@@ -75,7 +80,7 @@ spec:
       inputs:
         artifacts:
           - name: deployment-delete
-            path: /tmp/pod-delete-rm5.yaml
+            path: /tmp/deployment-delete.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -163,8 +168,8 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/version: ci
 
-          - name: rollback-deployment-delete
-            path: /tmp/pod-delete-rm5.yaml
+          - name: deployment-delete-rollback
+            path: /tmp/deployment-delete-rollback.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -241,7 +246,7 @@ spec:
                 
                       # Number of replicas to scale
                       - name: REPLICA_COUNT
-                        value: "5"
+                        value: "1"
                 
                       - name: DEFAULT_HEALTH_CHECK
                         value: "false"
@@ -254,7 +259,7 @@ spec:
 
 
           - name: pod-cpu-hog-2sf
-            path: /tmp/pod-cpu-hog-2sf.yaml
+            path: /tmp/pod-cpu-hog.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -396,7 +401,7 @@ spec:
                       app.kubernetes.io/version: latest
 
           - name: pod-network-loss-x1w
-            path: /tmp/pod-network-loss-x1w.yaml
+            path: /tmp/pod-network-loss.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -546,7 +551,7 @@ spec:
                       app.kubernetes.io/version: latest
 
           - name: pod-memory-hog-49a
-            path: /tmp/pod-memory-hog-49a.yaml
+            path: /tmp/pod-memory-hog.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -687,7 +692,7 @@ spec:
                       app.kubernetes.io/version: latest
 
           - name: disk-fill-h7d
-            path: /tmp/disk-fill-h7d.yaml
+            path: /tmp/disk-fill.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
@@ -971,9 +976,9 @@ spec:
                   annotations: {}
                 spec:
                   appinfo:
-                    appns: ''
-                    applabel: ''
-                    appkind: ''
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -1012,9 +1017,9 @@ spec:
                   annotations: {}
                 spec:
                   appinfo:
-                    appns: ''
-                    applabel: ''
-                    appkind: ''
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -1034,26 +1039,26 @@ spec:
         image: litmuschaos/litmus-checker:latest
         args: ["-file=/tmp/chaosengine.yaml","-saveName=/tmp/engine-name"]
 
-    - name: pod-delete
+    - name: deployment-delete
       inputs:
         artifacts:
-          - name: pod-delete
+          - name: deployment-delete
             path: /tmp/chaosengine.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
                 kind: ChaosEngine
                 metadata:
-                  name: catalogue-pod-delete-chaos
+                  name: catalogue-deployment-delete-chaos
                   namespace: "{{workflow.parameters.adminModeNamespace}}"
                   labels:
                     context: "{{workflow.parameters.appNamespace}}_catalogue"
                   annotations: {}
                 spec:
                   appinfo:
-                    appns: ''
-                    applabel: ''
-                    appkind: ''
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -1061,7 +1066,50 @@ spec:
                     runner:
                       imagePullPolicy: Always
                   experiments:
-                    - name: pod-delete
+                    - name: deployment-delete
+                      spec:
+                        components:
+                          env:
+                            - name: TOTAL_CHAOS_DURATION
+                              value: '30'
+                            # set chaos interval (in sec) as desired
+                            - name: CHAOS_INTERVAL
+                              value: '10'
+                            # pod failures without '--force' & default terminationGracePeriodSeconds
+                            - name: FORCE
+                              value: 'false'
+      container:
+        image: litmuschaos/litmus-checker:latest
+        args: ["-file=/tmp/chaosengine.yaml","-saveName=/tmp/engine-name"]
+
+    - name: deployment-delete-rollback
+      inputs:
+        artifacts:
+          - name: deployment-delete-rollback
+            path: /tmp/chaosengine.yaml
+            raw:
+              data: |
+                apiVersion: litmuschaos.io/v1alpha1
+                kind: ChaosEngine
+                metadata:
+                  name: catalogue-deployment-delete-rollback-chaos
+                  namespace: "{{workflow.parameters.adminModeNamespace}}"
+                  labels:
+                    context: "{{workflow.parameters.appNamespace}}_catalogue"
+                  annotations: {}
+                spec:
+                  appinfo:
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
+                  engineState: 'active'
+                  chaosServiceAccount: litmus-admin
+                  jobCleanUpPolicy: 'retain'
+                  components:
+                    runner:
+                      imagePullPolicy: Always
+                  experiments:
+                    - name: deployment-delete-rollback
                       spec:
                         components:
                           env:
@@ -1094,9 +1142,9 @@ spec:
                   annotations: {}
                 spec:
                   appinfo:
-                    appns: ''
-                    applabel: ''
-                    appkind: ''
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   auxiliaryAppInfo: ''
@@ -1140,9 +1188,9 @@ spec:
                   annotations: {}
                 spec:
                   appinfo:
-                    appns: ''
-                    applabel: ''
-                    appkind: ''
+                    appns: 'sock-shop'
+                    applabel: 'name=catalogue'
+                    appkind: 'deployment'
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -1170,7 +1218,7 @@ spec:
         command: [sh, -c]
         args:
           [
-            "kubectl delete chaosengine pod-memory-hog-chaos  pod-cpu-hog-chaos catalogue-pod-delete-chaos pod-network-loss-chaos -n {{workflow.parameters.adminModeNamespace}}",
+            "kubectl delete chaosengine pod-memory-hog-chaos  pod-cpu-hog-chaos catalogue-deployment-delete-chaos pod-network-loss-chaos -n {{workflow.parameters.adminModeNamespace}}",
           ]
 
     #cpu hog start
@@ -1204,9 +1252,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-catalogue-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: catalogue.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1251,9 +1299,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-front-end-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: front-end.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1298,9 +1346,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-payment-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: payment.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1316,8 +1364,8 @@ spec:
           - -saveName=/tmp/engine-name
     #cpu hog end
 
-    #pod-delete start
-    - name: k6-loadgen-pod-delete-1
+    #deployment-delete start
+    - name: k6-loadgen-deployment-delete-1
       inputs:
         artifacts:
             - name: k6-loadgen-acy
@@ -1347,9 +1395,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-catalogue-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: catalogue.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1364,7 +1412,7 @@ spec:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
 
-    - name: k6-loadgen-pod-delete-2
+    - name: k6-loadgen-deployment-delete-2
       inputs:
         artifacts:
             - name: k6-loadgen-acy
@@ -1394,9 +1442,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-front-end-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: front-end.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1411,7 +1459,7 @@ spec:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
 
-    - name: k6-loadgen-pod-delete-3
+    - name: k6-loadgen-deployment-delete-3
       inputs:
         artifacts:
             - name: k6-loadgen-acy
@@ -1442,9 +1490,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-payment-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: payment.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1458,7 +1506,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    #pod-delete end
+    #deployment-delete end
 
     #pod-network-loss start
     - name: k6-loadgen-pod-network-loss-1
@@ -1491,9 +1539,9 @@ spec:
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-catalogue-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: catalogue.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1532,15 +1580,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-front-end-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: front-end.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1580,15 +1628,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-payment-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: payment.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1629,15 +1677,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-catalogue-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: catalogue.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1676,15 +1724,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-front-end-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: front-end.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1724,15 +1772,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-payment-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: payment.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1773,15 +1821,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-catalogue-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: catalogue.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1822,13 +1870,13 @@ spec:
                               - name: TOTAL_CHAOS_DURATION
                                 value: "30"
                               - name: CHAOS_INTERVAL
-                                value: "30"
+                                value: "180"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-front-end-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: front-end.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
@@ -1868,15 +1916,15 @@ spec:
                           components:
                             env:
                               - name: TOTAL_CHAOS_DURATION
-                                value: "30"
+                                value: "180"
                               - name: CHAOS_INTERVAL
                                 value: "30"
                               - name: RAMP_TIME
                                 value: "0"
                               - name: SCRIPT_SECRET_NAME
-                                value: k6-script
+                                value: k6-payment-config
                               - name: SCRIPT_SECRET_KEY
-                                value: script.js
+                                value: payment.js
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
