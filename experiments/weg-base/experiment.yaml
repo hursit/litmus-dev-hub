@@ -24,30 +24,34 @@ spec:
             template: install-chaos-faults
           - name: load-test
             template: load-test
+
         - - name: pod-cpu-hog
             template: pod-cpu-hog
-          - name: k6-loadgen-acy
+          - name: k6-loadgen-pod-cpu-hog
             template: k6-loadgen-acy
+
         - - name: pod-delete
             template: pod-delete
-          - name: k6-loadgen-acy
+          - name: k6-loadgen-pod-delete
             template: k6-loadgen-acy
+
         - - name: pod-network-loss
             template: pod-network-loss
-          - name: k6-loadgen-acy
+          - name: k6-loadgen-pod-network-loss
             template: k6-loadgen-acy
+
         - - name: pod-memory-hog
             template: pod-memory-hog
-          - name: k6-loadgen-acy
+          - name: k6-loadgen-pod-memory-hog
             template: k6-loadgen-acy
+
         - - name: disk-fill
             template: disk-fill
-          - name: k6-loadgen-acy
+          - name: k6-loadgen-disk-fill
             template: k6-loadgen-acy
+
         - - name: cleanup-chaos-resources
             template: cleanup-chaos-resources
-          - name: k6-loadgen-acy
-            template: k6-loadgen-acy
 
     - name: install-chaos-faults
       inputs:
