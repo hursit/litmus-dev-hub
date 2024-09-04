@@ -25,48 +25,48 @@ spec:
 
         - - name: pod-cpu-hog
             template: pod-cpu-hog
-          - name: k6-loadgen-pod-cpu-hog
+          - name: k6-loadgen-pod-cpu-hog-1
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-cpu-hog
+          - name: k6-loadgen-pod-cpu-hog-2
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-cpu-hog
+          - name: k6-loadgen-pod-cpu-hog-3
             template: k6-loadgen-acy
 
         - - name: pod-delete
             template: pod-delete
-          - name: k6-loadgen-pod-delete
+          - name: k6-loadgen-pod-delete-1
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-delete
+          - name: k6-loadgen-pod-delete-2
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-delete
+          - name: k6-loadgen-pod-delete-3
             template: k6-loadgen-acy
 
         - - name: pod-network-loss
             template: pod-network-loss
-          - name: k6-loadgen-pod-network-loss
+          - name: k6-loadgen-pod-network-loss-1
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-network-loss
+          - name: k6-loadgen-pod-network-loss-2
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-network-loss
+          - name: k6-loadgen-pod-network-loss-3
             template: k6-loadgen-acy
 
         - - name: pod-memory-hog
             template: pod-memory-hog
-          - name: k6-loadgen-pod-memory-hog
+          - name: k6-loadgen-pod-memory-hog-1
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-memory-hog
+          - name: k6-loadgen-pod-memory-hog-2
             template: k6-loadgen-acy
-          - name: k6-loadgen-pod-memory-hog
+          - name: k6-loadgen-pod-memory-hog-3
             template: k6-loadgen-acy
 
         - - name: disk-fill
             template: disk-fill
           - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy
+            template: k6-loadgen-acy-1
           - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy
+            template: k6-loadgen-acy-2
           - name: k6-loadgen-disk-fill
-            template: k6-loadgen-acy
+            template: k6-loadgen-acy-3
 
         - - name: cleanup-chaos-resources
             template: cleanup-chaos-resources
