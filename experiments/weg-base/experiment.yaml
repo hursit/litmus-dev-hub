@@ -26,18 +26,28 @@ spec:
             template: load-test
         - - name: pod-cpu-hog
             template: pod-cpu-hog
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
         - - name: pod-delete
             template: pod-delete
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
         - - name: pod-network-loss
             template: pod-network-loss
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
         - - name: pod-memory-hog
             template: pod-memory-hog
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
         - - name: disk-fill
             template: disk-fill
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
         - - name: cleanup-chaos-resources
             template: cleanup-chaos-resources
-          - name: delete-loadtest
-            template: delete-loadtest
+          - name: k6-loadgen-acy
+            template: k6-loadgen-acy
 
     - name: install-chaos-faults
       inputs:
@@ -789,6 +799,127 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/host-path-usage: "true"
                       app.kubernetes.io/version: latest
+                
+                 
+
+          - name: k6-loadgen-acy
+            path: /tmp/k6-loadgen-acy.yaml
+            raw:
+              data: >
+                apiVersion: litmuschaos.io/v1alpha1
+                
+                description:
+                  message: |
+                    Execute the k6 engine using the JS script
+                kind: ChaosExperiment
+                
+                metadata:
+                  name: k6-loadgen
+                  labels:
+                    name: k6-loadgen
+                    app.kubernetes.io/part-of: litmus
+                    app.kubernetes.io/component: chaosexperiment
+                    app.kubernetes.io/version: 3.10.0
+                spec:
+                  definition:
+                    scope: Namespaced
+                    permissions:
+                      - apiGroups:
+                          - ""
+                        resources:
+                          - pods
+                        verbs:
+                          - create
+                          - delete
+                          - get
+                          - list
+                          - patch
+                          - update
+                          - deletecollection
+                      - apiGroups:
+                          - ""
+                        resources:
+                          - events
+                        verbs:
+                          - create
+                          - get
+                          - list
+                          - patch
+                          - update
+                      - apiGroups:
+                          - ""
+                        resources:
+                          - secrets
+                          - configmaps
+                        verbs:
+                          - get
+                          - list
+                      - apiGroups:
+                          - ""
+                        resources:
+                          - pods/log
+                        verbs:
+                          - get
+                          - list
+                          - watch
+                      - apiGroups:
+                          - ""
+                        resources:
+                          - pods/exec
+                        verbs:
+                          - get
+                          - list
+                          - create
+                      - apiGroups:
+                          - batch
+                        resources:
+                          - jobs
+                        verbs:
+                          - create
+                          - list
+                          - get
+                          - delete
+                          - deletecollection
+                      - apiGroups:
+                          - litmuschaos.io
+                        resources:
+                          - chaosengines
+                          - chaosexperiments
+                          - chaosresults
+                        verbs:
+                          - create
+                          - list
+                          - get
+                          - patch
+                          - update
+                          - delete
+                    image: litmuschaos.docker.scarf.sh/litmuschaos/go-runner:3.10.0
+                    imagePullPolicy: Always
+                    args:
+                      - -c
+                      - ./experiments -name k6-loadgen
+                    command:
+                      - /bin/bash
+                    env:
+                      - name: TOTAL_CHAOS_DURATION
+                        value: "30"
+                      - name: CHAOS_INTERVAL
+                        value: "30"
+                      - name: RAMP_TIME
+                        value: "0"
+                      - name: SCRIPT_SECRET_NAME
+                        value: k6-script
+                      - name: SCRIPT_SECRET_KEY
+                        value: script.js
+                      - name: LIB_IMAGE
+                        value: ghcr.io/grafana/k6-operator:latest-runner
+                      - name: LIB_IMAGE_PULL_POLICY
+                        value: Always
+                    labels:
+                      name: k6-loadgen
+                      app.kubernetes.io/part-of: litmus
+                      app.kubernetes.io/component: experiment-job
+                      app.kubernetes.io/version: 3.10.0
       outputs: {}
       metadata: {}
       container:
@@ -1029,3 +1160,50 @@ spec:
           [
             "kubectl delete chaosengine pod-memory-hog-chaos  pod-cpu-hog-chaos catalogue-pod-delete-chaos pod-network-loss-chaos -n {{workflow.parameters.adminModeNamespace}}",
           ]
+
+    - name: k6-loadgen-acy
+      inputs:
+        artifacts:
+            - name: k6-loadgen-acy
+              path: /tmp/chaosengine-k6-loadgen-acy.yaml
+              raw:
+                data: |
+                  apiVersion: litmuschaos.io/v1alpha1
+                  kind: ChaosEngine
+                  metadata:
+                    name: nginx-chaos
+                    namespace: "{{workflow.parameters.adminModeNamespace}}"
+                    labels:
+                      workflow_run_id: "{{ workflow.uid }}"
+                    annotations: {}
+                  spec:
+                    engineState: active
+                    chaosServiceAccount: litmus-admin
+                    experiments:
+                      - name: k6-loadgen
+                        spec:
+                          components:
+                            env:
+                              - name: TOTAL_CHAOS_DURATION
+                                value: "30"
+                              - name: CHAOS_INTERVAL
+                                value: "30"
+                              - name: RAMP_TIME
+                                value: "0"
+                              - name: SCRIPT_SECRET_NAME
+                                value: k6-script
+                              - name: SCRIPT_SECRET_KEY
+                                value: script.js
+                              - name: LIB_IMAGE
+                                value: ghcr.io/grafana/k6-operator:latest-runner
+                              - name: LIB_IMAGE_PULL_POLICY
+                                value: Always
+      metadata:
+        labels:
+          weight: "10"
+      container:
+        name: ""
+        image: docker.io/litmuschaos/litmus-checker:2.11.0
+        args:
+          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
+          - -saveName=/tmp/engine-name
