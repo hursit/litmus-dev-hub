@@ -1,0 +1,28 @@
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChartServiceVersion
+metadata:
+  name: weg-base
+  version: 0.1.0
+  annotations:
+    categories: weg-base
+    chartDescription: Weg base chart
+spec:
+  displayName: Weg Base
+  categoryDescription: >
+    Weg Base Chart
+  faults:
+    - name: weg-base
+      description: Weg base chart
+  keywords:
+    - Kubernetes
+  platforms:
+    - GKE
+    - Packet(Kubeadm)
+    - Minikube
+    - EKS
+    - AKS
+    - OpenShift(OKD)
+  icon:
+    - url:
+      mediatype: ""
