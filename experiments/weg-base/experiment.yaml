@@ -820,7 +820,7 @@ spec:
                   appinfo:
                     appns: ''
                     applabel: ''
-                    appkind: '
+                    appkind: ''
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -861,7 +861,7 @@ spec:
                   appinfo:
                     appns: ''
                     applabel: ''
-                    appkind: '
+                    appkind: ''
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -900,7 +900,7 @@ spec:
                   appinfo:
                     appns: ''
                     applabel: ''
-                    appkind: '
+                    appkind: ''
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -943,7 +943,7 @@ spec:
                   appinfo:
                     appns: ''
                     applabel: ''
-                    appkind: '
+                    appkind: ''
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   auxiliaryAppInfo: ''
