@@ -817,6 +817,10 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_carts"
                   annotations: {}
                 spec:
+                  appinfo:
+                    appns: ''
+                    applabel: ''
+                    appkind: '
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -854,6 +858,10 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_orders"
                   annotations: {}
                 spec:
+                  appinfo:
+                    appns: ''
+                    applabel: ''
+                    appkind: '
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -889,6 +897,10 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_catalogue"
                   annotations: {}
                 spec:
+                  appinfo:
+                    appns: ''
+                    applabel: ''
+                    appkind: '
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -928,6 +940,10 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_user-db"
                   annotations: {}
                 spec:
+                  appinfo:
+                    appns: ''
+                    applabel: ''
+                    appkind: '
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   auxiliaryAppInfo: ''
@@ -970,6 +986,10 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_catalogue-db"
                   annotations: {}
                 spec:
+                  appinfo:
+                    appns: ''
+                    applabel: ''
+                    appkind: ''
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
