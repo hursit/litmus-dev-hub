@@ -817,10 +817,6 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_carts"
                   annotations: {}
                 spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=carts'
-                    appkind: 'deployment'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -858,10 +854,6 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_orders"
                   annotations: {}
                 spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=orders'
-                    appkind: 'deployment'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
@@ -897,10 +889,6 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_catalogue"
                   annotations: {}
                 spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=catalogue'
-                    appkind: 'deployment'
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -940,10 +928,6 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_user-db"
                   annotations: {}
                 spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=user-db'
-                    appkind: 'statefulset'
                   jobCleanUpPolicy: retain
                   engineState: 'active'
                   auxiliaryAppInfo: ''
@@ -986,10 +970,6 @@ spec:
                     context: "{{workflow.parameters.appNamespace}}_catalogue-db"
                   annotations: {}
                 spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=catalogue-db'
-                    appkind: 'statefulset'
                   engineState: 'active'
                   chaosServiceAccount: litmus-admin
                   jobCleanUpPolicy: 'retain'
@@ -1010,11 +990,6 @@ spec:
       container:
         image: litmuschaos/litmus-checker:latest
         args: ["-file=/tmp/chaosengine.yaml","-saveName=/tmp/engine-name"]
-
-    - name: delete-application
-      container:
-        image: litmuschaos/litmus-app-deployer:latest
-        args: ["-namespace=sock-shop","-typeName=resilient","-operation=delete", "-app=sock-shop"]
 
     - name: load-test
       container:
