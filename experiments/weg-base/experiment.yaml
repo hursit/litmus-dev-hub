@@ -67,27 +67,25 @@ spec:
     - name: install-chaos-faults
       inputs:
         artifacts:
-          - name: deployment-delete
-            path: /tmp/deployment-delete.yaml
+          - name: pod-delete
+            path: /tmp/pod-delete.yaml
             raw:
-              data: >
+              data: |
                 apiVersion: litmuschaos.io/v1alpha1
-
                 description:
                   message: |
-                    Scale the application replicas and test the node autoscaling on cluster
+                    Deletes a pod belonging to a deployment/statefulset/daemonset
                 kind: ChaosExperiment
-
                 metadata:
-                  name: pod-autoscaler
+                  name: pod-delete
                   labels:
-                    name: pod-autoscaler
+                    name: pod-delete
                     app.kubernetes.io/part-of: litmus
                     app.kubernetes.io/component: chaosexperiment
-                    app.kubernetes.io/version: ci
+                    app.kubernetes.io/version: latest
                 spec:
                   definition:
-                    scope: Cluster
+                    scope: Namespaced
                     permissions:
                       # Create and monitor the experiment & helper pods
                       - apiGroups: [""]
@@ -118,100 +116,22 @@ spec:
                       - apiGroups: [""]
                         resources: ["pods/exec"]
                         verbs: ["get", "list", "create"]
-                      # performs CRUD operations on the deployments and statefulsets
+                      # deriving the parent/owner details of the pod(if parent is anyof {deployment, statefulset, daemonsets})
                       - apiGroups: ["apps"]
-                        resources: ["deployments", "statefulsets"]
-                        verbs: ["list", "get", "patch", "update"]
-                      # for configuring and monitor the experiment job by the chaos-runner pod
-                      - apiGroups: ["batch"]
-                        resources: ["jobs"]
-                        verbs: ["create", "list", "get", "delete", "deletecollection"]
-                      # for creation, status polling and deletion of litmus chaos resources used within a chaos workflow
-                      - apiGroups: ["litmuschaos.io"]
-                        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
-                        verbs: ["create", "list", "get", "patch", "update", "delete"]
-                    image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: Always
-                    args:
-                      - -c
-                      - ./experiments -name pod-autoscaler
-                    command:
-                      - /bin/bash
-                    env:
-                      - name: TOTAL_CHAOS_DURATION
-                        value: "60"
-
-                      # Period to wait before and after injection of chaos in sec
-                      - name: RAMP_TIME
-                        value: ""
-
-                      # Number of replicas to scale
-                      - name: REPLICA_COUNT
-                        value: "0"
-
-                      - name: DEFAULT_HEALTH_CHECK
-                        value: "false"
-
-                    labels:
-                      name: pod-autoscaler
-                      app.kubernetes.io/part-of: litmus
-                      app.kubernetes.io/component: experiment-job
-                      app.kubernetes.io/version: ci
-          - name: deployment-delete-rollback
-            path: /tmp/deployment-delete-rollback.yaml
-            raw:
-              data: >
-                apiVersion: litmuschaos.io/v1alpha1
-
-                description:
-                  message: |
-                    Scale the application replicas and test the node autoscaling on cluster
-                kind: ChaosExperiment
-
-                metadata:
-                  name: pod-autoscaler
-                  labels:
-                    name: pod-autoscaler
-                    app.kubernetes.io/part-of: litmus
-                    app.kubernetes.io/component: chaosexperiment
-                    app.kubernetes.io/version: ci
-                spec:
-                  definition:
-                    scope: Cluster
-                    permissions:
-                      # Create and monitor the experiment & helper pods
+                        resources: ["deployments", "statefulsets", "replicasets", "daemonsets"]
+                        verbs: ["list", "get"]
+                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
+                      - apiGroups: ["apps.openshift.io"]
+                        resources: ["deploymentconfigs"]
+                        verbs: ["list", "get"]
+                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
                       - apiGroups: [""]
-                        resources: ["pods"]
-                        verbs:
-                          [
-                            "create",
-                            "delete",
-                            "get",
-                            "list",
-                            "patch",
-                            "update",
-                            "deletecollection",
-                          ]
-                      # Performs CRUD operations on the events inside chaosengine and chaosresult
-                      - apiGroups: [""]
-                        resources: ["events"]
-                        verbs: ["create", "get", "list", "patch", "update"]
-                      # Fetch configmaps details and mount it to the experiment pod (if specified)
-                      - apiGroups: [""]
-                        resources: ["configmaps"]
+                        resources: ["replicationcontrollers"]
                         verbs: ["get", "list"]
-                      # Track and get the runner, experiment, and helper pods log
-                      - apiGroups: [""]
-                        resources: ["pods/log"]
-                        verbs: ["get", "list", "watch"]
-                      # for creating and managing to execute commands inside target container
-                      - apiGroups: [""]
-                        resources: ["pods/exec"]
-                        verbs: ["get", "list", "create"]
-                      # performs CRUD operations on the deployments and statefulsets
-                      - apiGroups: ["apps"]
-                        resources: ["deployments", "statefulsets"]
-                        verbs: ["list", "get", "patch", "update"]
+                      # deriving the parent/owner details of the pod(if parent is argo-rollouts)
+                      - apiGroups: ["argoproj.io"]
+                        resources: ["rollouts"]
+                        verbs: ["list", "get"]
                       # for configuring and monitor the experiment job by the chaos-runner pod
                       - apiGroups: ["batch"]
                         resources: ["jobs"]
@@ -224,30 +144,51 @@ spec:
                     imagePullPolicy: Always
                     args:
                       - -c
-                      - ./experiments -name pod-autoscaler
+                      - ./experiments -name pod-delete
                     command:
                       - /bin/bash
                     env:
                       - name: TOTAL_CHAOS_DURATION
-                        value: "60"
+                        value: "15"
 
                       # Period to wait before and after injection of chaos in sec
                       - name: RAMP_TIME
                         value: ""
 
-                      # Number of replicas to scale
-                      - name: REPLICA_COUNT
-                        value: "1"
+                      - name: FORCE
+                        value: "true"
+
+                      - name: CHAOS_INTERVAL
+                        value: "5"
+
+                      ## percentage of total pods to target
+                      - name: PODS_AFFECTED_PERC
+                        value: ""
+
+                      - name: TARGET_CONTAINER
+                        value: ""
+
+                      - name: TARGET_PODS
+                        value: ""
 
                       - name: DEFAULT_HEALTH_CHECK
                         value: "false"
 
+                      # To select pods on specific node(s)
+                      - name: NODE_LABEL
+                        value: ""
+
+                      ## it defines the sequence of chaos execution for multiple target pods
+                      ## supported values: serial, parallel
+                      - name: SEQUENCE
+                        value: "parallel"
+
                     labels:
-                      name: pod-autoscaler
+                      name: pod-delete
                       app.kubernetes.io/part-of: litmus
                       app.kubernetes.io/component: experiment-job
-                      app.kubernetes.io/version: ci
-          - name: pod-cpu-hog-2sf
+                      app.kubernetes.io/version: latest
+          - name: pod-cpu-hog
             path: /tmp/pod-cpu-hog.yaml
             raw:
               data: >
@@ -390,7 +331,7 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/runtime-api-usage: "true"
                       app.kubernetes.io/version: latest
-          - name: pod-network-loss-x1w
+          - name: pod-network-loss
             path: /tmp/pod-network-loss.yaml
             raw:
               data: >
@@ -541,7 +482,7 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/runtime-api-usage: "true"
                       app.kubernetes.io/version: latest
-          - name: pod-memory-hog-49a
+          - name: pod-memory-hog
             path: /tmp/pod-memory-hog.yaml
             raw:
               data: >
@@ -683,7 +624,7 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/runtime-api-usage: "true"
                       app.kubernetes.io/version: latest
-          - name: disk-fill-h7d
+          - name: disk-fill
             path: /tmp/disk-fill.yaml
             raw:
               data: >+
@@ -1341,7 +1282,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    - name: k6-loadgen-deployment-delete-1
+    - name: k6-loadgen-pod-delete-1
       inputs:
         artifacts:
           - name: k6-loadgen-acy
@@ -1387,7 +1328,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    - name: k6-loadgen-deployment-delete-2
+    - name: k6-loadgen-pod-delete-2
       inputs:
         artifacts:
           - name: k6-loadgen-acy
