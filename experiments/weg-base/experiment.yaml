@@ -23,19 +23,6 @@ spec:
         - - name: install-chaos-faults
             template: install-chaos-faults
 
-        - - name: deployment-delete
-            template: deployment-delete
-
-        - - name: k6-loadgen-deployment-delete-1
-            template: k6-loadgen-deployment-delete-1
-          - name: k6-loadgen-deployment-delete-2
-            template: k6-loadgen-deployment-delete-2
-          - name: k6-loadgen-deployment-delete-3
-            template: k6-loadgen-deployment-delete-3
-
-        - - name: deployment-delete-rollback
-            template: deployment-delete-rollback
-
         - - name: pod-cpu-hog
             template: pod-cpu-hog
           - name: k6-loadgen-pod-cpu-hog-1
@@ -45,6 +32,14 @@ spec:
           - name: k6-loadgen-pod-cpu-hog-3
             template: k6-loadgen-pod-cpu-hog-3
 
+        - - name: pod-delete
+            template: pod-delete
+          - name: k6-loadgen-pod-delete-1
+            template: k6-loadgen-pod-delete-1
+          - name: k6-loadgen-pod-delete-2
+            template: k6-loadgen-pod-delete-2
+          - name: k6-loadgen-pod-delete-3
+            template: k6-loadgen-pod-delete-3
 
         - - name: pod-network-loss
             template: pod-network-loss
@@ -141,7 +136,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name pod-autoscaler
@@ -230,7 +225,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name pod-autoscaler
@@ -332,7 +327,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name pod-cpu-hog
@@ -474,7 +469,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name pod-network-loss
@@ -624,7 +619,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name pod-memory-hog
@@ -765,7 +760,7 @@ spec:
                         resources: ["chaosengines", "chaosexperiments", "chaosresults"]
                         verbs: ["create", "list", "get", "patch", "update", "delete"]
                     image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name disk-fill
@@ -921,7 +916,7 @@ spec:
                           - update
                           - delete
                     image: litmuschaos.docker.scarf.sh/litmuschaos/go-runner:3.10.0
-                    imagePullPolicy: IfNotPresent
+                    imagePullPolicy: Always
                     args:
                       - -c
                       - ./experiments -name k6-loadgen
@@ -941,7 +936,7 @@ spec:
                       - name: LIB_IMAGE
                         value: ghcr.io/grafana/k6-operator:latest-runner
                       - name: LIB_IMAGE_PULL_POLICY
-                        value: IfNotPresent
+                        value: Always
                     labels:
                       name: k6-loadgen
                       app.kubernetes.io/part-of: litmus
@@ -1039,17 +1034,17 @@ spec:
         image: litmuschaos/litmus-checker:latest
         args: ["-file=/tmp/chaosengine.yaml","-saveName=/tmp/engine-name"]
 
-    - name: deployment-delete
+    - name: pod-delete
       inputs:
         artifacts:
-          - name: deployment-delete
+          - name: pod-delete
             path: /tmp/chaosengine.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
                 kind: ChaosEngine
                 metadata:
-                  name: catalogue-deployment-delete-chaos
+                  name: catalogue-pod-delete-chaos
                   namespace: "{{workflow.parameters.adminModeNamespace}}"
                   labels:
                     context: "{{workflow.parameters.appNamespace}}_catalogue"
@@ -1064,52 +1059,9 @@ spec:
                   jobCleanUpPolicy: 'retain'
                   components:
                     runner:
-                      imagePullPolicy: IfNotPresent
+                      imagePullPolicy: Always
                   experiments:
-                    - name: deployment-delete
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: '30'
-                            # set chaos interval (in sec) as desired
-                            - name: CHAOS_INTERVAL
-                              value: '10'
-                            # pod failures without '--force' & default terminationGracePeriodSeconds
-                            - name: FORCE
-                              value: 'false'
-      container:
-        image: litmuschaos/litmus-checker:latest
-        args: ["-file=/tmp/chaosengine.yaml","-saveName=/tmp/engine-name"]
-
-    - name: deployment-delete-rollback
-      inputs:
-        artifacts:
-          - name: deployment-delete-rollback
-            path: /tmp/chaosengine.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: catalogue-deployment-delete-rollback-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    context: "{{workflow.parameters.appNamespace}}_catalogue"
-                  annotations: {}
-                spec:
-                  appinfo:
-                    appns: 'sock-shop'
-                    applabel: 'name=catalogue'
-                    appkind: 'deployment'
-                  engineState: 'active'
-                  chaosServiceAccount: litmus-admin
-                  jobCleanUpPolicy: 'retain'
-                  components:
-                    runner:
-                      imagePullPolicy: IfNotPresent
-                  experiments:
-                    - name: deployment-delete-rollback
+                    - name: pod-delete
                       spec:
                         components:
                           env:
@@ -1151,7 +1103,7 @@ spec:
                   chaosServiceAccount: litmus-admin
                   components:
                     runner:
-                      imagePullPolicy: IfNotPresent
+                      imagePullPolicy: Always
                   experiments:
                     - name: pod-network-loss
                       spec:
@@ -1196,7 +1148,7 @@ spec:
                   jobCleanUpPolicy: 'retain'
                   components:
                     runner:
-                      imagePullPolicy: IfNotPresent
+                      imagePullPolicy: Always
                   experiments:
                     - name: disk-fill
                       spec:
@@ -1258,7 +1210,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1305,7 +1257,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1352,7 +1304,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1401,7 +1353,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1448,7 +1400,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1459,7 +1411,7 @@ spec:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
 
-    - name: k6-loadgen-deployment-delete-3
+    - name: k6-loadgen-pod-delete-3
       inputs:
         artifacts:
             - name: k6-loadgen-acy
@@ -1495,7 +1447,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1544,7 +1496,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1591,7 +1543,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1639,7 +1591,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1688,7 +1640,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1735,7 +1687,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1782,7 +1734,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1831,7 +1783,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1878,7 +1830,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
@@ -1925,7 +1877,7 @@ spec:
                               - name: LIB_IMAGE
                                 value: ghcr.io/grafana/k6-operator:latest-runner
                               - name: LIB_IMAGE_PULL_POLICY
-                                value: IfNotPresent
+                                value: Always
       metadata:
         labels:
           weight: "10"
