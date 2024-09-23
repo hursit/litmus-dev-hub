@@ -22,14 +22,7 @@ spec:
       steps:
         - - name: install-chaos-faults
             template: install-chaos-faults
-        - - name: pod-cpu-hog
-            template: pod-cpu-hog
-          - name: k6-loadgen-pod-cpu-hog-1
-            template: k6-loadgen-pod-cpu-hog-1
-          - name: k6-loadgen-pod-cpu-hog-2
-            template: k6-loadgen-pod-cpu-hog-2
-          - name: k6-loadgen-pod-cpu-hog-3
-            template: k6-loadgen-pod-cpu-hog-3
+
         - - name: pod-delete
             template: pod-delete
           - name: k6-loadgen-pod-delete-1
@@ -38,6 +31,7 @@ spec:
             template: k6-loadgen-pod-delete-2
           - name: k6-loadgen-pod-delete-3
             template: k6-loadgen-pod-delete-3
+            
         - - name: pod-network-loss
             template: pod-network-loss
           - name: k6-loadgen-pod-network-loss-1
@@ -46,22 +40,15 @@ spec:
             template: k6-loadgen-pod-network-loss-2
           - name: k6-loadgen-pod-network-loss-3
             template: k6-loadgen-pod-network-loss-3
-        - - name: pod-memory-hog
-            template: pod-memory-hog
-          - name: k6-loadgen-pod-memory-hog-1
-            template: k6-loadgen-pod-memory-hog-1
-          - name: k6-loadgen-pod-memory-hog-2
-            template: k6-loadgen-pod-memory-hog-2
-          - name: k6-loadgen-pod-memory-hog-3
-            template: k6-loadgen-pod-memory-hog-3
-        - - name: disk-fill
-            template: disk-fill
-          - name: k6-loadgen-disk-fill-1
-            template: k6-loadgen-disk-fill-1
-          - name: k6-loadgen-disk-fill-2
-            template: k6-loadgen-disk-fill-2
-          - name: k6-loadgen-disk-fill-3
-            template: k6-loadgen-disk-fill-3
+        
+        - - name: pod-network-latency
+            template: pod-network-latency
+          - name: k6-loadgen-pod-network-latency-1
+            template: k6-loadgen-pod-network-latency-1
+          - name: k6-loadgen-pod-network-latency-2
+            template: k6-loadgen-pod-network-latency-2
+          - name: k6-loadgen-pod-network-latency-3
+            template: k6-loadgen-pod-network-latency-3
         - - name: cleanup-chaos-resources
             template: cleanup-chaos-resources
     - name: install-chaos-faults
@@ -221,149 +208,6 @@ spec:
                       app.kubernetes.io/part-of: litmus
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/version: latest
-          - name: pod-cpu-hog
-            path: /tmp/pod-cpu-hog.yaml
-            raw:
-              data: >
-                apiVersion: litmuschaos.io/v1alpha1
-
-                description:
-                  message: |
-                    Injects CPU consumption on pods belonging to an app deployment
-                kind: ChaosExperiment
-
-                metadata:
-                  name: pod-cpu-hog
-                  labels:
-                    name: pod-cpu-hog
-                    app.kubernetes.io/part-of: litmus
-                    app.kubernetes.io/component: chaosexperiment
-                    app.kubernetes.io/version: latest
-                spec:
-                  definition:
-                    scope: Namespaced
-                    permissions:
-                      # Create and monitor the experiment & helper pods
-                      - apiGroups: [""]
-                        resources: ["pods"]
-                        verbs:
-                          [
-                            "create",
-                            "delete",
-                            "get",
-                            "list",
-                            "patch",
-                            "update",
-                            "deletecollection",
-                          ]
-                      # Performs CRUD operations on the events inside chaosengine and chaosresult
-                      - apiGroups: [""]
-                        resources: ["events"]
-                        verbs: ["create", "get", "list", "patch", "update"]
-                      # Fetch configmaps details and mount it to the experiment pod (if specified)
-                      - apiGroups: [""]
-                        resources: ["configmaps"]
-                        verbs: ["get", "list"]
-                      # Track and get the runner, experiment, and helper pods log
-                      - apiGroups: [""]
-                        resources: ["pods/log"]
-                        verbs: ["get", "list", "watch"]
-                      # for creating and managing to execute commands inside target container
-                      - apiGroups: [""]
-                        resources: ["pods/exec"]
-                        verbs: ["get", "list", "create"]
-                      # deriving the parent/owner details of the pod(if parent is anyof {deployment, statefulset, daemonsets})
-                      - apiGroups: ["apps"]
-                        resources: ["deployments", "statefulsets", "replicasets", "daemonsets"]
-                        verbs: ["list", "get"]
-                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
-                      - apiGroups: ["apps.openshift.io"]
-                        resources: ["deploymentconfigs"]
-                        verbs: ["list", "get"]
-                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
-                      - apiGroups: [""]
-                        resources: ["replicationcontrollers"]
-                        verbs: ["get", "list"]
-                      # deriving the parent/owner details of the pod(if parent is argo-rollouts)
-                      - apiGroups: ["argoproj.io"]
-                        resources: ["rollouts"]
-                        verbs: ["list", "get"]
-                      # for configuring and monitor the experiment job by the chaos-runner pod
-                      - apiGroups: ["batch"]
-                        resources: ["jobs"]
-                        verbs: ["create", "list", "get", "delete", "deletecollection"]
-                      # for creation, status polling and deletion of litmus chaos resources used within a chaos workflow
-                      - apiGroups: ["litmuschaos.io"]
-                        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
-                        verbs: ["create", "list", "get", "patch", "update", "delete"]
-                    image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: Always
-                    args:
-                      - -c
-                      - ./experiments -name pod-cpu-hog
-                    command:
-                      - /bin/bash
-                    env:
-                      - name: TOTAL_CHAOS_DURATION
-                        value: "60"
-
-                      ## Number of CPU cores to stress
-                      - name: CPU_CORES
-                        value: "1"
-
-                      ## LOAD CPU WITH GIVEN PERCENT LOADING FOR THE CPU STRESS WORKERS.
-                      ## 0 IS EFFECTIVELY A SLEEP (NO LOAD) AND 100 IS FULL LOADING
-                      - name: CPU_LOAD
-                        value: "100"
-
-                      ## Percentage of total pods to target
-                      - name: PODS_AFFECTED_PERC
-                        value: ""
-
-                      ## Period to wait before and after injection of chaos in sec
-                      - name: RAMP_TIME
-                        value: ""
-
-                      ## It is used in pumba lib only
-                      - name: LIB_IMAGE
-                        value: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-
-                      ## It is used in pumba lib only
-                      - name: STRESS_IMAGE
-                        value: "alexeiled/stress-ng:latest-ubuntu"
-
-                      ## provide the cluster runtime
-                      - name: CONTAINER_RUNTIME
-                        value: "containerd"
-
-                      # provide the socket file path
-                      - name: SOCKET_PATH
-                        value: "/run/containerd/containerd.sock"
-
-                      - name: TARGET_CONTAINER
-                        value: ""
-
-                      - name: TARGET_PODS
-                        value: ""
-
-                      - name: DEFAULT_HEALTH_CHECK
-                        value: "false"
-
-                      # To select pods on specific node(s)
-                      - name: NODE_LABEL
-                        value: ""
-
-                      ## it defines the sequence of chaos execution for multiple target pods
-                      ## supported values: serial, parallel
-                      - name: SEQUENCE
-                        value: "parallel"
-
-                    labels:
-                      name: pod-cpu-hog
-                      app.kubernetes.io/part-of: litmus
-                      app.kubernetes.io/component: experiment-job
-                      app.kubernetes.io/runtime-api-usage: "true"
-                      app.kubernetes.io/version: latest
           - name: pod-network-loss
             path: /tmp/pod-network-loss.yaml
             raw:
@@ -515,150 +359,8 @@ spec:
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/runtime-api-usage: "true"
                       app.kubernetes.io/version: latest
-          - name: pod-memory-hog
-            path: /tmp/pod-memory-hog.yaml
-            raw:
-              data: >
-                apiVersion: litmuschaos.io/v1alpha1
-
-                description:
-                  message: |
-                    Injects memory consumption on pods belonging to an app deployment
-                kind: ChaosExperiment
-
-                metadata:
-                  name: pod-memory-hog
-                  labels:
-                    name: pod-memory-hog
-                    app.kubernetes.io/part-of: litmus
-                    app.kubernetes.io/component: chaosexperiment
-                    app.kubernetes.io/version: latest
-                spec:
-                  definition:
-                    scope: Namespaced
-                    permissions:
-                      # Create and monitor the experiment & helper pods
-                      - apiGroups: [""]
-                        resources: ["pods"]
-                        verbs:
-                          [
-                            "create",
-                            "delete",
-                            "get",
-                            "list",
-                            "patch",
-                            "update",
-                            "deletecollection",
-                          ]
-                      # Performs CRUD operations on the events inside chaosengine and chaosresult
-                      - apiGroups: [""]
-                        resources: ["events"]
-                        verbs: ["create", "get", "list", "patch", "update"]
-                      # Fetch configmaps details and mount it to the experiment pod (if specified)
-                      - apiGroups: [""]
-                        resources: ["configmaps"]
-                        verbs: ["get", "list"]
-                      # Track and get the runner, experiment, and helper pods log
-                      - apiGroups: [""]
-                        resources: ["pods/log"]
-                        verbs: ["get", "list", "watch"]
-                      # for creating and managing to execute commands inside target container
-                      - apiGroups: [""]
-                        resources: ["pods/exec"]
-                        verbs: ["get", "list", "create"]
-                      # deriving the parent/owner details of the pod(if parent is anyof {deployment, statefulset, daemonsets})
-                      - apiGroups: ["apps"]
-                        resources: ["deployments", "statefulsets", "replicasets", "daemonsets"]
-                        verbs: ["list", "get"]
-                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
-                      - apiGroups: ["apps.openshift.io"]
-                        resources: ["deploymentconfigs"]
-                        verbs: ["list", "get"]
-                      # deriving the parent/owner details of the pod(if parent is deploymentConfig)
-                      - apiGroups: [""]
-                        resources: ["replicationcontrollers"]
-                        verbs: ["get", "list"]
-                      # deriving the parent/owner details of the pod(if parent is argo-rollouts)
-                      - apiGroups: ["argoproj.io"]
-                        resources: ["rollouts"]
-                        verbs: ["list", "get"]
-                      # for configuring and monitor the experiment job by the chaos-runner pod
-                      - apiGroups: ["batch"]
-                        resources: ["jobs"]
-                        verbs: ["create", "list", "get", "delete", "deletecollection"]
-                      # for creation, status polling and deletion of litmus chaos resources used within a chaos workflow
-                      - apiGroups: ["litmuschaos.io"]
-                        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
-                        verbs: ["create", "list", "get", "patch", "update", "delete"]
-                    image: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-                    imagePullPolicy: Always
-                    args:
-                      - -c
-                      - ./experiments -name pod-memory-hog
-                    command:
-                      - /bin/bash
-                    env:
-                      - name: TOTAL_CHAOS_DURATION
-                        value: "60"
-
-                      ## enter the amount of memory in megabytes to be consumed by the application pod
-                      - name: MEMORY_CONSUMPTION
-                        value: "500"
-
-                      ## Number of workers to perform stress
-                      - name: NUMBER_OF_WORKERS
-                        value: "1"
-
-                      ## percentage of total pods to target
-                      - name: PODS_AFFECTED_PERC
-                        value: ""
-
-                      ## Period to wait before and after injection of chaos in sec
-                      - name: RAMP_TIME
-                        value: ""
-
-                      ## It is used in pumba lib only
-                      - name: LIB_IMAGE
-                        value: "litmuschaos.docker.scarf.sh/litmuschaos/go-runner:latest"
-
-                      ## It is used in pumba lib only
-                      - name: STRESS_IMAGE
-                        value: "alexeiled/stress-ng:latest-ubuntu"
-
-                      ## provide the cluster runtime
-                      - name: CONTAINER_RUNTIME
-                        value: "containerd"
-
-                      # provide the socket file path
-                      - name: SOCKET_PATH
-                        value: "/run/containerd/containerd.sock"
-
-                      ## it defines the sequence of chaos execution for multiple target pods
-                      ## supported values: serial, parallel
-                      - name: SEQUENCE
-                        value: "parallel"
-
-                      - name: DEFAULT_HEALTH_CHECK
-                        value: "false"
-
-                      - name: TARGET_CONTAINER
-                        value: ""
-
-                      - name: TARGET_PODS
-                        value: ""
-
-                      # To select pods on specific node(s)
-                      - name: NODE_LABEL
-                        value: ""
-
-                    labels:
-                      name: pod-memory-hog
-                      app.kubernetes.io/part-of: litmus
-                      app.kubernetes.io/component: experiment-job
-                      app.kubernetes.io/runtime-api-usage: "true"
-                      app.kubernetes.io/version: latest
-          - name: disk-fill
-            path: /tmp/disk-fill.yaml
+          - name: pod-network-latency
+            path: /tmp/pod-network-latency.yaml
             raw:
               data: >+
                 apiVersion: litmuschaos.io/v1alpha1
@@ -669,9 +371,9 @@ spec:
                 kind: ChaosExperiment
 
                 metadata:
-                  name: disk-fill
+                  name: pod-network-latency
                   labels:
-                    name: disk-fill
+                    name: pod-network-latency
                     app.kubernetes.io/part-of: litmus
                     app.kubernetes.io/component: chaosexperiment
                     app.kubernetes.io/version: latest
@@ -736,7 +438,7 @@ spec:
                     imagePullPolicy: Always
                     args:
                       - -c
-                      - ./experiments -name disk-fill
+                      - ./experiments -name pod-network-latency
                     command:
                       - /bin/bash
                     env:
@@ -789,7 +491,7 @@ spec:
                         value: "parallel"
 
                     labels:
-                      name: disk-fill
+                      name: pod-network-latency
                       app.kubernetes.io/part-of: litmus
                       app.kubernetes.io/component: experiment-job
                       app.kubernetes.io/host-path-usage: "true"
@@ -926,104 +628,7 @@ spec:
           - kubectl apply -f /tmp/ -n {{workflow.parameters.adminModeNamespace}}
             && sleep 30
         resources: {}
-    - name: pod-cpu-hog
-      inputs:
-        artifacts:
-          - name: pod-cpu-hog
-            path: /tmp/chaosengine-pod-cpu-hog.yaml
-            raw:
-              data: >
-                apiVersion: litmuschaos.io/v1alpha1
-
-                kind: ChaosEngine
-
-                metadata:
-                  name: pod-cpu-hog-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    context: "{{workflow.parameters.appNamespace}}_carts"
-                  annotations: {}
-                spec:
-                  appinfo:
-                    appns: sock-shop
-                    applabel: name=catalogue
-                    appkind: deployment
-                  jobCleanUpPolicy: retain
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: pod-cpu-hog
-                      spec:
-                        components:
-                          env:
-                            - name: CPU_CORES
-                              value: "1"
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: CHAOS_KILL_COMMAND
-                              value: >-
-                                kill -9 $(ps afx | grep "[md5sum] /dev/zero" | awk '{print$1}' |
-                                tr '
-
-                                ' ' ')
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-pod-cpu-hog.yaml
-          - -saveName=/tmp/engine-name
-    - name: pod-memory-hog
-      inputs:
-        artifacts:
-          - name: pod-memory-hog
-            path: /tmp/chaosengine-pod-memory-hog.yaml
-            raw:
-              data: >
-                apiVersion: litmuschaos.io/v1alpha1
-
-                kind: ChaosEngine
-
-                metadata:
-                  name: pod-memory-hog-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    context: "{{workflow.parameters.appNamespace}}_orders"
-                  annotations: {}
-                spec:
-                  appinfo:
-                    appns: sock-shop
-                    applabel: name=catalogue
-                    appkind: deployment
-                  jobCleanUpPolicy: retain
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: pod-memory-hog
-                      spec:
-                        components:
-                          env:
-                            - name: MEMORY_CONSUMPTION
-                              value: "500"
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: CHAOS_KILL_COMMAND
-                              value: >-
-                                kill -9 $(ps afx | grep "[dd] if /dev/zero" | awk '{print $1}' |
-                                tr '
-
-                                ' ' ')
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-pod-memory-hog.yaml
-          - -saveName=/tmp/engine-name
+ 
     - name: pod-delete
       inputs:
         artifacts:
@@ -1049,18 +654,26 @@ spec:
                   jobCleanUpPolicy: retain
                   components:
                     runner:
-                      imagePullPolicy: Always
+                      imagePullPolicy: IfNotPresent
                   experiments:
                     - name: pod-delete
                       spec:
                         components:
                           env:
                             - name: TOTAL_CHAOS_DURATION
-                              value: "30"
+                              value: '60'
+                
+                            - name: RAMP_TIME
+                              value: '0'
+                
                             - name: CHAOS_INTERVAL
-                              value: "10"
+                              value: '1'
+                
                             - name: FORCE
-                              value: "false"
+                              value: 'true'
+                
+                            - name: PODS_AFFECTED_PERC
+                              value: '100'
       metadata:
         labels:
           weight: "10"
@@ -1102,16 +715,23 @@ spec:
                       spec:
                         components:
                           env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: NETWORK_INTERFACE
-                              value: eth0
                             - name: NETWORK_PACKET_LOSS_PERCENTAGE
                               value: "100"
-                            - name: CONTAINER_RUNTIME
-                              value: containerd
-                            - name: SOCKET_PATH
-                              value: /run/containerd/containerd.sock
+              
+                            - name: TOTAL_CHAOS_DURATION
+                              value: "60"
+              
+                            - name: RAMP_TIME
+                              value: "10"
+              
+                            - name: PODS_AFFECTED_PERC
+                              value: "100"
+              
+                            - name: DEFAULT_HEALTH_CHECK
+                              value: "false"
+              
+                            - name: SEQUENCE
+                              value: parallel
       metadata:
         labels:
           weight: "10"
@@ -1121,17 +741,17 @@ spec:
         args:
           - -file=/tmp/chaosengine-pod-network-loss.yaml
           - -saveName=/tmp/engine-name
-    - name: disk-fill
+    - name: pod-network-latency
       inputs:
         artifacts:
-          - name: disk-fill
-            path: /tmp/chaosengine-disk-fill.yaml
+          - name: pod-network-latency
+            path: /tmp/chaosengine-pod-network-latency.yaml
             raw:
               data: |
                 apiVersion: litmuschaos.io/v1alpha1
                 kind: ChaosEngine
                 metadata:
-                  name: catalogue-disk-fill
+                  name: catalogue-pod-network-latency
                   namespace: "{{workflow.parameters.adminModeNamespace}}"
                   labels:
                     context: "{{workflow.parameters.appNamespace}}_catalogue-db"
@@ -1148,16 +768,38 @@ spec:
                     runner:
                       imagePullPolicy: Always
                   experiments:
-                    - name: disk-fill
+                    - name: pod-network-latency
                       spec:
                         components:
                           env:
-                            - name: FILL_PERCENTAGE
+                            - name: LIB_IMAGE
+                              value: litmuschaos.docker.scarf.sh/litmuschaos/go-runner:3.10.0
+                            - name: LATENCY
+                              value: "2000"
+                            - name: TARGET_SERVICE_PORT
+                              value: "80"
+                            - name: TOXICITY
                               value: "100"
-                            - name: TARGET_CONTAINER
-                              value: ""
+                            - name: PROXY_PORT
+                              value: "20000"
+                            - name: NETWORK_INTERFACE
+                              value: eth0
                             - name: TOTAL_CHAOS_DURATION
-                              value: "30"
+                              value: "60"
+                            - name: DEFAULT_HEALTH_CHECK
+                              value: "false"
+                            - name: PODS_AFFECTED_PERC
+                              value: "100"
+                            - name: TARGET_LABELS
+                              value: "name=catalogue"
+                            - name: CONTAINER_RUNTIME
+                              value: containerd
+                            - name: SOCKET_PATH
+                              value: /run/containerd/containerd.sock
+                            - name: NODE_LABEL
+                              value: ""
+                            - name: SEQUENCE
+                              value: parallel
       metadata:
         labels:
           weight: "10"
@@ -1165,7 +807,7 @@ spec:
         name: ""
         image: docker.io/litmuschaos/litmus-checker:2.11.0
         args:
-          - -file=/tmp/chaosengine-disk-fill.yaml
+          - -file=/tmp/chaosengine-pod-network-latency.yaml
           - -saveName=/tmp/engine-name
     - name: cleanup-chaos-resources
       container:
@@ -1177,144 +819,6 @@ spec:
           - kubectl delete chaosengine pod-memory-hog-chaos  pod-cpu-hog-chaos
             catalogue-deployment-delete-chaos pod-network-loss-chaos -n
             {{workflow.parameters.adminModeNamespace}}
-    - name: k6-loadgen-pod-cpu-hog-1
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-catalogue-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: catalogue.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-    - name: k6-loadgen-pod-cpu-hog-2
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-front-end-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: front-end.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-    - name: k6-loadgen-pod-cpu-hog-3
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "30"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-payment-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: payment.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
     - name: k6-loadgen-pod-delete-1
       inputs:
         artifacts:
@@ -1592,7 +1096,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    - name: k6-loadgen-pod-memory-hog-1
+    - name: k6-loadgen-pod-network-latency-1
       inputs:
         artifacts:
           - name: k6-loadgen-acy
@@ -1638,145 +1142,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    - name: k6-loadgen-pod-memory-hog-2
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "180"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-front-end-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: front-end.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-    - name: k6-loadgen-pod-memory-hog-3
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "180"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-payment-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: payment.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-    - name: k6-loadgen-disk-fill-1
-      inputs:
-        artifacts:
-          - name: k6-loadgen-acy
-            path: /tmp/chaosengine-k6-loadgen-acy.yaml
-            raw:
-              data: |
-                apiVersion: litmuschaos.io/v1alpha1
-                kind: ChaosEngine
-                metadata:
-                  name: nginx-chaos
-                  namespace: "{{workflow.parameters.adminModeNamespace}}"
-                  labels:
-                    workflow_run_id: "{{ workflow.uid }}"
-                  annotations: {}
-                spec:
-                  engineState: active
-                  chaosServiceAccount: litmus-admin
-                  experiments:
-                    - name: k6-loadgen
-                      spec:
-                        components:
-                          env:
-                            - name: TOTAL_CHAOS_DURATION
-                              value: "180"
-                            - name: CHAOS_INTERVAL
-                              value: "30"
-                            - name: RAMP_TIME
-                              value: "0"
-                            - name: SCRIPT_SECRET_NAME
-                              value: k6-catalogue-config
-                            - name: SCRIPT_SECRET_KEY
-                              value: catalogue.js
-                            - name: LIB_IMAGE
-                              value: ghcr.io/grafana/k6-operator:latest-runner
-                            - name: LIB_IMAGE_PULL_POLICY
-                              value: Always
-      metadata:
-        labels:
-          weight: "10"
-      container:
-        name: ""
-        image: docker.io/litmuschaos/litmus-checker:2.11.0
-        args:
-          - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
-          - -saveName=/tmp/engine-name
-    - name: k6-loadgen-disk-fill-2
+    - name: k6-loadgen-pod-network-latency-2
       inputs:
         artifacts:
           - name: k6-loadgen-acy
@@ -1822,7 +1188,7 @@ spec:
         args:
           - -file=/tmp/chaosengine-k6-loadgen-acy.yaml
           - -saveName=/tmp/engine-name
-    - name: k6-loadgen-disk-fill-3
+    - name: k6-loadgen-pod-network-latency-3
       inputs:
         artifacts:
           - name: k6-loadgen-acy
